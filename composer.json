@@ -5,11 +5,16 @@
     "keywords": ["laravel", "framework"],
     "license": "MIT",
     "require": {
-        "php": "8.1 || ^8.2",
+        "php": "^7.4 || ^8.0",
+        "greensea/keccak": "^1.0",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^10.10",
         "laravel/sanctum": "^3.3",
-        "laravel/tinker": "^2.8"
+        "laravel/tinker": "^2.9",
+        "laravel/ui": "^4.4",
+        "moontoast/math": "^1.2",
+        "phpseclib/phpseclib": "^3.0",
+        "simplito/elliptic-php": "^1.0"
     },
     "require-dev": {
         "fakerphp/faker": "^1.9.1",
@@ -64,6 +69,6 @@
             "php": "8.1"
         }
     },
-    "minimum-stability": "stable",
+    "minimum-stability": "dev",
     "prefer-stable": true
 }

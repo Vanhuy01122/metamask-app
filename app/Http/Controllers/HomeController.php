@@ -8,23 +8,24 @@ use Illuminate\Support\Str;
 
 class HomeController extends Controller
 {
-    public function login()
-    {
-        if (Auth::user() && Auth::check()) {
-            return redirect()->route('home');
-        }
-        return view('login', [
-            'nonce' => Str::random(24)
-        ]);
-    }
+    /**
+     * Create a new controller instance.
+     *
+     * @return void
+     */
+//    public function __construct()
+//    {
+//        $this->middleware('auth');
+//    }
 
     public function home()
     {
         if (Auth::user() && Auth::check()) {
             return view('home', [
                 'eth_address' => Auth::user()->eth_address,
+                'nonce' => Str::random(24)
             ]);
         }
-        return redirect()->route('login');
+        return view('home');
     }
 }

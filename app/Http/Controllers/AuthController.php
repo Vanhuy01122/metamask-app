@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use Illuminate\Support\Str;
-
+use App\Helpers\EcRecover;
 class AuthController extends Controller
 {
     public function authenticate(Request $request)
@@ -25,6 +25,10 @@ class AuthController extends Controller
         if (!$user) {
             $user = new User;
             $user->eth_address = $ethAddress;
+            $user->name = 'user';
+            $user->password = 'user123';
+            $user->level = 1;
+            $user->email = $ethAddress .'@gmail.com';
             $user->save();
         }
 
@@ -36,6 +40,6 @@ class AuthController extends Controller
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('login');
+        return redirect()->route('home');
     }
 }
