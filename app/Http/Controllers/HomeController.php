@@ -8,11 +8,11 @@ use Illuminate\Support\Str;
 
 class HomeController extends Controller
 {
-    /**
-     * Create a new controller instance.
-     *
-     * @return void
-     */
+//    /**
+//     * Create a new controller instance.
+//     *
+//     * @return void
+//     */
 //    public function __construct()
 //    {
 //        $this->middleware('auth');
@@ -27,5 +27,16 @@ class HomeController extends Controller
             ]);
         }
         return view('home');
+    }
+    public function sendBnb(Request $request)
+    {
+        $transaction = new Transaction([
+            'from_address' => $fromAddress,
+            'to_address' => $toAddress,
+            'amount' => $amountToSend,
+            'transaction_hash' => $txHash,
+        ]);
+        $transaction->save();
+        return response()->json(['result' => $result, 'transaction' => $transaction]);
     }
 }

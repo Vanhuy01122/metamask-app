@@ -14,7 +14,7 @@ function isMetaMaskInstalled() {
 
 // This is not so perfect cuz dont return what currecy balace we are taking
 // BUT if address starts with 0x you can be sure that this is ethereum address
-async function getMetaMaskBalance(account) {
+    async function getMetaMaskBalance(account) {
     const web3 = new Web3(window.ethereum);
     // the value is returned in wei so  1,000,000,000,000,000,000 wei = 1 eth   |   Ether	10*18 wei
     let result_in_wei = await web3.eth.getBalance(account); // returns str
@@ -32,36 +32,6 @@ async function getMetaMaskBalance(account) {
         return parseFloat(result_in_eth);
     }
 }
-async function getBNBBalance(address) {
-    try {
-        // BNB uses the same contract address on Binance Smart Chain (BSC)
-        const accounts = await ethereum.request({method: 'eth_accounts'});
-        const contractAddress = '0x8af2301fc91097375ea09916240ace5adc19078f0ac5b871bf871d399fa05c9f';
-        const contractABI = [
-            {
-                "constant": true,
-                "inputs": [{"name": "who", "type": "address"}],
-                "name": "balanceOf",
-                "outputs": [{"name": "", "type": "uint256"}],
-                "type": "function"
-            }
-        ];
-
-        const contract = new window.web3.eth.Contract(contractABI, contractAddress);
-        // Convert balance from wei to BNB
-        const balanceWei = await contract.methods.balanceOf(address).call();
-        if (balanceWei === undefined || balanceWei === null) {
-            throw new Error('Invalid response from contract');
-        }
-        const balanceBNB = web3.utils.fromWei(balanceWei, 'ether');
-
-        return parseFloat(balanceBNB);
-    } catch (error) {
-        console.error('Error getting BNB balance:', error);
-        return 0;
-    }
-}
-
 
 async function getAccounts()
 {
