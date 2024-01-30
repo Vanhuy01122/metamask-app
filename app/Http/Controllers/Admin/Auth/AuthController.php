@@ -18,28 +18,34 @@ class AuthController extends Controller
 
     public function login(Request $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $ethAddress = Str::lower($request->ethAddress);
+        $message   = $request->message;
+        $signature = $request->signature;
 
-        if (Auth::attempt([
-            'email' => $request->email,
-            'password' => $request->password
-        ])) {
-            // Successful login
-            return redirect()->intended('dashboard');
-        } else {
-            // Failed login
-            return redirect('login')
-                ->withErrors(['email' => 'Invalid credentials'])
-                ->withInput();
+        $valid = \App\Helpers\EcRecover::personalVerifyEcRecover($message, $signature, $ethAddress);
+        if (!$valid) {
+            return response()->json(['message' => 'Invalid signature'], 401);
         }
+
+        $admin = Admin::where('eth_address', $ethAddress)->first();
+
+        if (!$admin) {
+            $admin = new Admin;
+            $admin->eth_address = $ethAddress;
+            $admin->name = 'admin';
+            $admin->password = 'admin123';
+            $admin->save();
+        }
+
+        // Đăng nhập admin
+        Auth::guard('admin')->login($admin);
+
+        return response()->json(['message' => 'Admin login successful'], 200);
     }
 
     public function logout()
     {
         Auth::logout();
-        return redirect()->route('login');
+        return redirect()->route('home');
     }
 }

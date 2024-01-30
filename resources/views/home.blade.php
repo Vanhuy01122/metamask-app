@@ -7,20 +7,6 @@
         <x-install-metamask-overlay/>
         <x-initializing-metamask-modal/>
     </div>
-
-    {{--    <div class="container">--}}
-    {{--        <div class="row">--}}
-    {{--            <h1>You are logged in</h1>--}}
-    {{--            <div class="col-12 text-center mt-3">--}}
-    {{--                <div class="dropdown" style="float:right;">--}}
-    {{--                    <a href="{{ route('logout') }}" class="btn btn-secondary">--}}
-    {{--                        Logout--}}
-    {{--                    </a>--}}
-    {{--                </div>--}}
-    {{--            </div>--}}
-    {{--        </div>--}}
-    {{--    </div>--}}
-
     <div class="hm-bn">
         <div class="container">
             <div class="row">
@@ -64,36 +50,37 @@
                                 </div>
                                 <div class="tab-usdt">
                                     <div class="tab">
-                                        <button class="tablinks" onclick="openCity(event, 'eth')" id="defaultOpen">ETH
+                                        <button class="tablinks" onclick="openCity(event, 'eth')" id="defaultOpen">BNB
                                         </button>
                                         <button class="tablinks" onclick="openCity(event, 'usdt')">USDT</button>
                                         <button class="tablinks" onclick="openCity(event, 'card')">CARD</button>
                                     </div>
-                                    <div class="dashtitle"><span id="account_balance"></span></div>
-                                    <div class="dashtitle">BNB: <span id="bnb_num"></span></div>
-                                    <div class="dashtitle">Chain ID: <span id="chain_id"></span></div>
+                                    {{--show usdt--}}
+                                    {{--                                    <div class="dashtitle"><span id="account_balance"></span></div>--}}
+                                    <div class="dashtitle"><span id="ustdShow"></span></div>
+                                    {{-- bnb--}}
                                     <div id="eth" style="display: block;" class="tabcontent">
                                         <div class="form-layout">
                                             <div class="input-control">
-                                                <span>Pay with USD1</span>
-                                                <input type="number" placeholder="0">
+                                                <span>Địa chỉ nhận VH</span>
+                                                <input type="text" id="recipientAddress" placeholder="VH Address">
                                             </div>
                                             <div class="input-control">
-                                                <span>Receive BTCMTX</span>
-                                                <input type="number" placeholder="0">
+                                                <span>Số lượng VH</span>
+                                                <input type="number" id="usdtAmount" placeholder="Quantity">
                                             </div>
                                         </div>
                                     </div>
-
+                                    {{--Token VH--}}
                                     <div id="usdt" class="tabcontent">
                                         <div class="form-layout">
                                             <div class="input-control">
-                                                <span>Pay with USD2</span>
-                                                <input type="number" placeholder="0">
+                                                <span>Địa chỉ nhận BNB</span>
+                                                <input type="text" id="recipientAddressInput" placeholder="BNB Address">
                                             </div>
                                             <div class="input-control">
-                                                <span>Receive BTCMTX</span>
-                                                <input type="number" placeholder="0">
+                                                <span>Số lượng BNB</span>
+                                                <input type="number" id="amountInput" placeholder="Quantity">
                                             </div>
                                         </div>
                                     </div>
@@ -112,12 +99,25 @@
                                     </div>
                                 </div>
                                 <div class="connect-wallet">
-                                    {{--                                    <button class="connect-metamask" id="connectButton">Connect metamask</button>--}}
-                                    <button class="connect-metamask" id="connectButton">@if(empty($eth_address))
-                                            Connect metamask
+
+{{--                                    <label for="recipientAddress">Recipient's Ethereum Address:</label>--}}
+{{--                                    <input type="text" id="recipientAddress" placeholder="0xRecipientEthereumAddress">--}}
+
+{{--                                    <label for="usdtAmount">Quantity of USDT:</label>--}}
+{{--                                    <input type="text" id="usdtAmount" placeholder="Enter quantity in USDT">--}}
+
+                                    <div class="d-flex gap-lg-2 mt-2">
+                                        @if(empty($eth_address))
+                                            <button class="connect-metamask" id="connectButton">Connect metamask
+                                            </button>
                                         @else
-                                            Buy now
-                                        @endif</button>
+                                            <button class="connect-metamask" id="sendBnb">send</button>
+                                        @endif
+                                    </div>
+                                    {{--                                    <button class="connect-metamask" id="connectButton">--}}
+                                    {{--                                            Connect metamask--}}
+                                    {{--                                            Buy now--}}
+                                    {{--                                        </button>--}}
                                 </div>
                             </div>
                         </div>
@@ -657,7 +657,72 @@
             </div>
         </div>
     </div>
+    {{--send bnb--}}
+    <script>
+        if (typeof window.ethereum !== 'undefined') {
+            window.web3 = new Web3(window.ethereum);
 
+            // Request account access
+            window.ethereum.enable()
+                .then(function (accounts) {
+                    if (accounts.length === 0) {
+                        console.error('User not logged in. Please log in to MetaMask.');
+                        // You may want to redirect the user to a login page or display a message.
+                    } else {
+                        // console.log('User logged in:', accounts[0]);
+                        // Continue with the application logic or call the sendBNB function, etc.
+                    }
+                })
+                .catch(function (error) {
+                    console.error('Error connecting to MetaMask:', error);
+                    // Handle the error (display a message to the user, etc.)
+                });
+        } else {
+            document.getElementById('connectButton').addEventListener('click', function () {
+                alert('Hãy cài đặt ứng dụng metamask trên trình duyệt này !');
+            })
+        }
+
+        // function to send BNB
+
+        async function sendBNB(toAddress, amount) {
+            const accounts = await window.web3.eth.getAccounts();
+
+            const transactionParameters = {
+                to: toAddress,
+                value: window.web3.utils.toHex(window.web3.utils.toWei(amount, 'ether')),
+                // gas: '0', // adjust gas limit accordingly
+                // gasPrice: '0', // adjust gas price accordingly
+                gasLimit: '0x5028', // Customizable by the user during MetaMask confirmation.
+                maxPriorityFeePerGas: '0x3b9aca00', // Customizable by the user during MetaMask confirmation.
+                maxFeePerGas: '0x2540be400', // Customizable by the user during MetaMask confirmation.
+                from: accounts[0],
+            };
+
+            try {
+                const transactionHash = await window.web3.eth.sendTransaction(transactionParameters);
+                console.log('Transaction Hash:', transactionHash);
+            } catch (error) {
+                console.error('Transaction Error:', error);
+            }
+        }
+
+        document.getElementById('sendBnb').addEventListener('click', function () {
+            // Get the recipient address and amount from the input fields
+            const recipientAddress = document.getElementById('recipientAddressInput').value;
+            const amount = document.getElementById('amountInput').value;
+
+            // Check if the recipient address and amount are valid
+            if (!recipientAddress || isNaN(amount) || amount <= 0) {
+                console.error('Invalid recipient address or amount');
+                return;
+            }
+
+            // Replace the amount with the user-entered value
+            sendBNB(recipientAddress, amount);
+        });
+    </script>
+    {{--login--}}
     <script>
         async function checkIfEverythingIsCorrect() {
             if (!isMetaMaskInstalled()) {
@@ -694,7 +759,6 @@
         }
 
         function logout(message = '') {
-            console.log('logout:', message);
             ajax({
                 url: "{{ route('logout') }}",
                 type: 'GET',
@@ -711,20 +775,13 @@
             let chain_id = await getChainId();
             let account_balance = await getMetaMaskBalance(document.querySelector('meta[name="eth_address"]').content);
             document.getElementById('ethAddress').innerHTML = accounts[0];
-            document.getElementById('chain_id').innerHTML = chain_id;
-            document.getElementById('account_balance').innerHTML = account_balance + ' ETH';
-
-            const bnbBalance = await getBNBBalance(accounts[0]);
-            document.getElementById('bnb_num').innerHTML = bnbBalance;
+            document.getElementById('account_balance').innerHTML = 'BNB: ' + account_balance;
         }
 
         displayInfo();
         checkIfEverythingIsCorrect();
         startApp();
-    </script>
-    {{--    login--}}
-    <script>
-        // User needs to personal_sign to prove they own the wallet (public ETH address).
+
         async function signData() {
             const web3 = new Web3(window.ethereum);
 
@@ -733,28 +790,15 @@
             const current_account_with_correct_checksum = Web3.utils.toChecksumAddress(accounts[0]);
 
             try {
-                // Alternative:
-                // web3.eth.personal.sign(MESSAGE_TO_SIGN, current_account_with_correct_checksum)
-                //    .then(async (signature) => {});
                 let signature = await web3.eth.personal.sign(MESSAGE_TO_SIGN, current_account_with_correct_checksum); // you can pass the third parameter (password)
-
-                // The goal is to extract from the sign the wallet address that signed the request. In this way, there's no way to fake it.
                 const ethAddressThatSignedMessage = await web3.eth.personal.ecRecover(MESSAGE_TO_SIGN, signature);
-
-                // ethAddressThatSignedMessage is lowercase, so we use Web3.utils.toChecksumAddress() that will convert an upper or lowercase Ethereum address to a checksum address.
                 if (current_account_with_correct_checksum != Web3.utils.toChecksumAddress(ethAddressThatSignedMessage)) {
-                    // console.log('Failed to verify the signer');
                     return;
                 }
-                // console.log('Successfully verified the signer');
                 sendLoginRequest(current_account_with_correct_checksum, MESSAGE_TO_SIGN, signature);
                 hideModal();
-            }
-                // If user will reject to sign the message
-            catch (error) {
+            } catch (error) {
                 hideModal();
-                //console.error(getErrorResponse(error, "personal.sign"));
-                // You are connected but you refused to sign message and we can not log you in - Reload the page and try again!
                 window.location.reload();
             }
         }
@@ -769,7 +813,6 @@
             }
         }
 
-        // This is function from MetaMask documentation
         function connect() {
 
             disableConnectButton();
@@ -786,9 +829,6 @@
                     // eth_accounts will return an empty array.
 
                     enableConnectButton();
-
-                    // EIP-1193 userRejectedRequest error
-                    // If this happens, the user rejected the connection request.
                     if (error.code === 4001) {
                         status.innerHTML = "You refused to connect Metamask"; //status.innerHTML = error.message;
                     } else {
@@ -818,26 +858,22 @@
 
         function handleEthereum() {
             if (isMetaMaskInstalled()) {
-                // Access the decentralized web!
-
-                // You should only attempt to request the user's accounts in response to user interaction, such as a button click. Otherwise, you popup-spam the user like it's 1999.
                 connectButton.onclick = connect;
-
                 startApp();
             } else {
-                informUserToInstallMetaMask();
+                // informUserToInstallMetaMask();
             }
-            hideSpinner();
+            // hideSpinner();
         }
 
-        function informUserToInstallMetaMask() {
-            connectButton.innerHTML = "Install MetaMask!";
-            connectButton.onclick = () => {
-                window.open('https://metamask.io', '_blank');
-            };
-            document.getElementById('install_metamask_overlay').style.display = "block";
-            document.getElementById('login_wrapper').style.display = "none";
-        }
+        // function informUserToInstallMetaMask() {
+        //     connectButton.innerHTML = "Install MetaMask!";
+        //     connectButton.onclick = () => {
+        //         window.open('https://metamask.io', '_blank');
+        //     };
+        //     document.getElementById('install_metamask_overlay').style.display = "block";
+        //     document.getElementById('login_wrapper').style.display = "none";
+        // }
 
         function disableConnectButton() {
             document.body.style.cursor = "progress";
@@ -853,19 +889,21 @@
             connectButton.innerHTML = "Connect with MetaMask";
         }
 
-        function showSpinner() {
-            spinner_on_white.style.display = "block";
-        }
-
-        function hideSpinner() {
-            spinner_on_white.style.display = "none";
-        }
+        // function showSpinner() {
+        //     spinner_on_white.style.display = "block";
+        // }
+        //
+        // function hideSpinner() {
+        //     spinner_on_white.style.display = "none";
+        // }
 
         function hideModal() {
             document.body.style.cursor = "auto";
             initializing_metamask_modal.hide();
         }
+
     </script>
+    {{--modal--}}
     <script>
         let currentAccount = null;
         let spinner_on_white = document.getElementById('spinner_on_white');
@@ -880,7 +918,7 @@
             "\n " +
             "Note: you don't have to remember or write it down.";
 
-        showSpinner();
+        // showSpinner();
 
         // Below if/else is to reliably detect both the mobile and extension provider.
         if (window.ethereum) {
@@ -893,98 +931,159 @@
             setTimeout(handleEthereum, 3000); // 3 seconds
         }
     </script>
-    {{--    send transaction--}}
+    {{--show token--}}
     <script>
-        // const Web3 = require('web3');
+        document.addEventListener('DOMContentLoaded', async () => {
+            // ustdShow
+            const accounts = await window.web3.eth.getAccounts();
+            if (accounts.length === 0) {
+                // No accounts available, user is not logged in
+                console.log('User is not logged in.');
+                return;
+            }
+            // Request MetaMask to enable the Ethereum provider
+            await window.ethereum.enable();
 
-        // Connect to MetaMask
-        const web3 = new Web3(window.ethereum);
+            // Create a Web3 instance
+            const web3 = new Web3(window.ethereum);
 
-        window.ethereum.enable().then(function (accounts) {
-            const fromAccount = accounts[0];
+            window.CONTRACT_ADDRESS = "{{ env('CONTRACT_ADDRESS') }}";
+            // USDT contract address on the Ethereum mainnet
+            const usdtContractAddress =  window.CONTRACT_ADDRESS;
 
-            // Contract address and ABI
-            const contractAddress = fromAccount;
-            const contractABI = [
+            // USDT contract ABI (Application Binary Interface)
+            const usdtContractABI = [
+                // Include the relevant contract methods and events here
                 {
-                    "constant": false,
-                    "inputs": [
-                        {
-                            "name": "_to",
-                            "type": "address"
-                        },
-                        {
-                            "name": "_value",
-                            "type": "uint256"
-                        }
-                    ],
-                    "name": "transfer",
-                    "outputs": [
-                        {
-                            "name": "",
-                            "type": "bool"
-                        }
-                    ],
-                    "payable": false,
-                    "stateMutability": "nonpayable",
+                    "constant": true,
+                    "inputs": [{"name": "_owner", "type": "address"}],
+                    "name": "balanceOf",
+                    "outputs": [{"name": "balance", "type": "uint256"}],
                     "type": "function"
-                },
-                // ... other functions and events
+                }
             ];
 
             // Create a contract instance
-            const contract = new web3.eth.Contract(contractABI, contractAddress);
+            const usdtContract = new web3.eth.Contract(usdtContractABI, usdtContractAddress);
 
-            // Your transaction parameters
-            const toAddress = 'RECIPIENT_ADDRESS';
-            const amount = web3.utils.toWei('1', 'ether'); // 1 ETH as an example
+            // Ethereum address to check the USDT balance
+            const addressToCheck = accounts[0];
 
-            // Send transaction
-            contract.methods.transfer(toAddress, amount).send({ from: fromAccount })
-                .on('transactionHash', function (hash) {
-                    console.log('Transaction Hash:', hash);
-                })
-                .on('confirmation', function (confirmationNumber, receipt) {
-                    console.log('Confirmation Number:', confirmationNumber);
-                    console.log('Receipt:', receipt);
-                })
-                .on('error', function (error, receipt) {
-                    console.error('Transaction Error:', error);
-                    console.log('Receipt:', receipt);
-                });
+            // Get USDT balance for the specified address
+            const usdtBalance = await usdtContract.methods.balanceOf(addressToCheck).call();
+            const formattedBalance = parseFloat(usdtBalance).toString();
+            const showToken = document.getElementById('ethAddress').innerHTML;
+
+            if (showToken > 0) {
+                document.getElementById('ustdShow').innerHTML = 'Token: ' + usdtBalance.replace(/0+$/, '') + ' VH';
+            }
+            // console.log(`USDT Balance for ${addressToCheck}: ${usdtBalance}`);
         });
 
-    //     show token
-    //     const fromAccount = accounts[0];
-    //     const tokenAddress = '0x8af2301fc91097375ea09916240ace5adc19078f0ac5b871bf871d399fa05c9f';
-    //     const tokenSymbol = 'TUT';
-    //     const tokenDecimals = 18;
-    //     const tokenImage = 'http://placekitten.com/200/300';
-    //     console.log(tokenAddress)
-    //     try {
-    //         // 'wasAdded' is a boolean. Like any RPC method, an error can be thrown.
-    //         const wasAdded = await window.ethereum.request({
-    //             method: 'wallet_watchAsset',
-    //             params: {
-    //                 type: 'ERC20',
-    //                 options: {
-    //                     address: tokenAddress, // The address of the token.
-    //                     symbol: tokenSymbol, // A ticker symbol or shorthand, up to 5 characters.
-    //                     decimals: tokenDecimals, // The number of decimals in the token.
-    //                     image: tokenImage, // A string URL of the token logo.
-    //                 },
-    //             },
-    //         });
-    //
-    //         if (wasAdded) {
-    //             console.log('Thanks for your interest!');
-    //         } else {
-    //             console.log('Your loss!');
-    //         }
-    //     } catch (error) {
-    //         console.log(error);
-    //     }
     </script>
+    {{--send token VH--}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Kết nối với ví MetaMask
+            window.CONTRACT_ADDRESS = "{{ env('CONTRACT_ADDRESS') }}";
 
+            const web3 = new Web3(window.ethereum);
+            document.getElementById('sendBnb').addEventListener('click', function () {
+                web3.eth.getAccounts().then((accounts) => {
+
+                    const senderAddress = accounts[0]; // Địa chỉ người gửi
+                    const contractAddress = window.CONTRACT_ADDRESS; // Địa chỉ smart contract
+                    const recipientAddress = document.getElementById('recipientAddress').value;
+                    const amount = document.getElementById('usdtAmount').value;
+                    // Số lượng token cần gửi
+                    const amountToSend = web3.utils.toWei(amount, 'ether');
+                    // Tạo giao dịch
+                    const transactionData = {
+                        from: senderAddress,
+                        to: contractAddress,
+                        value: '0',
+                        gas: 100000,
+                        gasPrice: web3.utils.toWei('6', 'gwei'),
+                        data: web3.eth.abi.encodeFunctionCall({
+                            name: 'transfer',
+                            type: 'function',
+                            inputs: [
+                                {type: 'address', name: '_to'},
+                                {type: 'uint256', name: '_value'},
+                            ],
+                        }, [recipientAddress, amountToSend]),
+
+                    };
+
+                    sendTransactionToController(transactionData, recipientAddress, amount);
+
+                    // Ký và gửi giao dịch
+                    web3.eth.sendTransaction(transactionData)
+                        .on('transactionHash', (hash) => {
+                            console.log(`Transaction hash: ${hash}`);
+                        })
+                        .on('receipt', (receipt) => {
+                            console.log(`Transaction receipt:`, receipt);
+                            // Gửi dữ liệu giao dịch đến controller
+                            sendTransactionToController(transactionData, receipt);
+                            // Cập nhật trạng thái của giao dịch
+                            updateTransactionStatus(transactionData, receipt.transactionHash, 2);
+
+                        })
+                        .on('error', (error) => {
+                            console.error(`Transaction error:`, error);
+                        });
+                });
+            });
+            // gửi token
+            function sendTransactionToController(transactionData, recipientAddress, amount) {
+                const apiUrl = '{{route('send-token')}}';
+                const dataToSend = {
+                    transactionData: transactionData,
+                    recipientAddress: recipientAddress,
+                    amount: amount,
+                };
+                console.log(dataToSend)
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(dataToSend),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+            // update trạng thái
+            function updateTransactionStatus(transactionData, transactionHash, status) {
+                const update_url = '{{route('update-transaction')}}';
+                fetch(update_url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        transactionData: transactionData,
+                        transactionHash: transactionHash,
+                        status: status
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Transaction status updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error updating transaction status:', error);
+                    });
+            }
+        });
+    </script>
     </body>
 @endsection
