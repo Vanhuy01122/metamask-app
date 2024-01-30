@@ -10,8 +10,9 @@ class Transaction extends Model
     use HasFactory;
     protected $fillable = [
         'from_address',
-        'to_address',
+        'recipient_address',
         'amount',
         'transaction_hash',
+        'status',
     ];
 }

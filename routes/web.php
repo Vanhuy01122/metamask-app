@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+\Illuminate\Support\Facades\Auth::routes();
 
 Route::get('/', [HomeController::class, 'home'])->name('home');
 
@@ -26,6 +27,8 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/api/send-transaction', [HomeController::class, 'sendTransaction']);
+    Route::post('/send-token', [HomeController::class, 'sendToken'])->name('send-token');
+    Route::post('/update-transaction', [HomeController::class, 'updateTransaction'])->name('update-transaction');
 });
 
 // Route cho trang đăng nhập

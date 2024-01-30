@@ -14,9 +14,10 @@ return new class extends Migration
         Schema::create('transactions', function (Blueprint $table) {
             $table->id();
             $table->string('from_address');
-            $table->string('to_address');
+            $table->string('recipient_address');
             $table->string('amount');
             $table->string('transaction_hash');
+            $table->string('status');
             $table->timestamps();
         });
     }

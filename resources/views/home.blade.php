@@ -56,23 +56,10 @@
                                         <button class="tablinks" onclick="openCity(event, 'card')">CARD</button>
                                     </div>
                                     {{--show usdt--}}
-                                    <div class="dashtitle"><span id="account_balance"></span></div>
+                                    {{--                                    <div class="dashtitle"><span id="account_balance"></span></div>--}}
                                     <div class="dashtitle"><span id="ustdShow"></span></div>
                                     {{-- bnb--}}
                                     <div id="eth" style="display: block;" class="tabcontent">
-                                        <div class="form-layout">
-                                            <div class="input-control">
-                                                <span>Địa chỉ nhận BNB</span>
-                                                <input type="text" id="recipientAddressInput" placeholder="BNB Address">
-                                            </div>
-                                            <div class="input-control">
-                                                <span>Số lượng BNB</span>
-                                                <input type="number" id="amountInput" placeholder="Quantity">
-                                            </div>
-                                        </div>
-                                    </div>
-                                    {{--Token VH--}}
-                                    <div id="usdt" class="tabcontent">
                                         <div class="form-layout">
                                             <div class="input-control">
                                                 <span>Địa chỉ nhận VH</span>
@@ -81,6 +68,19 @@
                                             <div class="input-control">
                                                 <span>Số lượng VH</span>
                                                 <input type="number" id="usdtAmount" placeholder="Quantity">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{--Token VH--}}
+                                    <div id="usdt" class="tabcontent">
+                                        <div class="form-layout">
+                                            <div class="input-control">
+                                                <span>Địa chỉ nhận BNB</span>
+                                                <input type="text" id="recipientAddressInput" placeholder="BNB Address">
+                                            </div>
+                                            <div class="input-control">
+                                                <span>Số lượng BNB</span>
+                                                <input type="number" id="amountInput" placeholder="Quantity">
                                             </div>
                                         </div>
                                     </div>
@@ -112,7 +112,6 @@
                                             </button>
                                         @else
                                             <button class="connect-metamask" id="sendBnb">send</button>
-                                            <button class="connect-metamask" id="sendUSDTButton">Send USDT</button>
                                         @endif
                                     </div>
                                     {{--                                    <button class="connect-metamask" id="connectButton">--}}
@@ -658,7 +657,7 @@
             </div>
         </div>
     </div>
-    {{--transaction--}}
+    {{--send bnb--}}
     <script>
         if (typeof window.ethereum !== 'undefined') {
             window.web3 = new Web3(window.ethereum);
@@ -670,7 +669,7 @@
                         console.error('User not logged in. Please log in to MetaMask.');
                         // You may want to redirect the user to a login page or display a message.
                     } else {
-                        console.log('User logged in:', accounts[0]);
+                        // console.log('User logged in:', accounts[0]);
                         // Continue with the application logic or call the sendBNB function, etc.
                     }
                 })
@@ -904,6 +903,7 @@
         }
 
     </script>
+    {{--modal--}}
     <script>
         let currentAccount = null;
         let spinner_on_white = document.getElementById('spinner_on_white');
@@ -931,17 +931,25 @@
             setTimeout(handleEthereum, 3000); // 3 seconds
         }
     </script>
+    {{--show token--}}
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             // ustdShow
+            const accounts = await window.web3.eth.getAccounts();
+            if (accounts.length === 0) {
+                // No accounts available, user is not logged in
+                console.log('User is not logged in.');
+                return;
+            }
             // Request MetaMask to enable the Ethereum provider
             await window.ethereum.enable();
 
             // Create a Web3 instance
             const web3 = new Web3(window.ethereum);
 
+            window.CONTRACT_ADDRESS = "{{ env('CONTRACT_ADDRESS') }}";
             // USDT contract address on the Ethereum mainnet
-            const usdtContractAddress = '0xFfB3827A67820332c8c5E6eED8EE9718e5E3E5ab';
+            const usdtContractAddress =  window.CONTRACT_ADDRESS;
 
             // USDT contract ABI (Application Binary Interface)
             const usdtContractABI = [
@@ -959,58 +967,121 @@
             const usdtContract = new web3.eth.Contract(usdtContractABI, usdtContractAddress);
 
             // Ethereum address to check the USDT balance
-            const addressToCheck = '0x86f5Ad2584f9f5979c831a66688D2058c653ca03';
+            const addressToCheck = accounts[0];
 
             // Get USDT balance for the specified address
             const usdtBalance = await usdtContract.methods.balanceOf(addressToCheck).call();
-            document.getElementById('ustdShow').innerHTML = 'Token: ' + usdtBalance + ' VH';
-            console.log(`USDT Balance for ${addressToCheck}: ${usdtBalance}`);
+            const formattedBalance = parseFloat(usdtBalance).toString();
+            const showToken = document.getElementById('ethAddress').innerHTML;
+
+            if (showToken > 0) {
+                document.getElementById('ustdShow').innerHTML = 'Token: ' + usdtBalance.replace(/0+$/, '') + ' VH';
+            }
+            // console.log(`USDT Balance for ${addressToCheck}: ${usdtBalance}`);
         });
 
-        document.getElementById('sendUSDTButton').addEventListener('click', async (toAddress, amount) => {
-            await window.ethereum.enable();
+    </script>
+    {{--send token VH--}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Kết nối với ví MetaMask
+            window.CONTRACT_ADDRESS = "{{ env('CONTRACT_ADDRESS') }}";
 
-            // Create a Web3 instance
             const web3 = new Web3(window.ethereum);
+            document.getElementById('sendBnb').addEventListener('click', function () {
+                web3.eth.getAccounts().then((accounts) => {
 
-            // USDT contract address on the Ethereum mainnet
-            const usdtContractAddress = '0xFfB3827A67820332c8c5E6eED8EE9718e5E3E5ab';
+                    const senderAddress = accounts[0]; // Địa chỉ người gửi
+                    const contractAddress = window.CONTRACT_ADDRESS; // Địa chỉ smart contract
+                    const recipientAddress = document.getElementById('recipientAddress').value;
+                    const amount = document.getElementById('usdtAmount').value;
+                    // Số lượng token cần gửi
+                    const amountToSend = web3.utils.toWei(amount, 'ether');
+                    // Tạo giao dịch
+                    const transactionData = {
+                        from: senderAddress,
+                        to: contractAddress,
+                        value: '0',
+                        gas: 100000,
+                        gasPrice: web3.utils.toWei('6', 'gwei'),
+                        data: web3.eth.abi.encodeFunctionCall({
+                            name: 'transfer',
+                            type: 'function',
+                            inputs: [
+                                {type: 'address', name: '_to'},
+                                {type: 'uint256', name: '_value'},
+                            ],
+                        }, [recipientAddress, amountToSend]),
 
-            // USDT contract ABI
-            const usdtContractABI = [
-                // Include the relevant contract methods and events here
-                {
-                    "constant": false,
-                    "inputs": [
-                        {"name": "_to", "type": "address"},
-                        {"name": "_value", "type": "uint256"}
-                    ],
-                    "name": "transfer",
-                    "outputs": [{"name": "", "type": "bool"}],
-                    "type": "function"
-                }
-            ];
+                    };
 
+                    sendTransactionToController(transactionData, recipientAddress, amount);
 
-            // Create a contract instance
-            const usdtContract = new web3.eth.Contract(usdtContractABI, usdtContractAddress);
+                    // Ký và gửi giao dịch
+                    web3.eth.sendTransaction(transactionData)
+                        .on('transactionHash', (hash) => {
+                            console.log(`Transaction hash: ${hash}`);
+                        })
+                        .on('receipt', (receipt) => {
+                            console.log(`Transaction receipt:`, receipt);
+                            // Gửi dữ liệu giao dịch đến controller
+                            sendTransactionToController(transactionData, receipt);
+                            // Cập nhật trạng thái của giao dịch
+                            updateTransactionStatus(transactionData, receipt.transactionHash, 2);
 
-            // Sender's Ethereum address (MetaMask address)
-            const senderAddress = (await web3.eth.getAccounts())[0];
-
-            const recipientAddress = document.getElementById('recipientAddress').value;
-
-            // Quantity of USDT to send (in wei)
-            const usdtAmount = document.getElementById('usdtAmount').value;
-            const usdtAmountWei = web3.utils.toWei(usdtAmount, 'ether');
-            // Send USDT transaction
-            try {
-                const transactionReceipt = await usdtContract.methods.transfer(recipientAddress, usdtAmountWei).send({from: senderAddress});
-                console.log('Transaction Receipt:', transactionReceipt);
-                alert('VH sent successfully!');
-            } catch (error) {
-                console.error('Error sending VH:', error.message);
-                alert('Error sending VH. Please check the console for details.');
+                        })
+                        .on('error', (error) => {
+                            console.error(`Transaction error:`, error);
+                        });
+                });
+            });
+            // gửi token
+            function sendTransactionToController(transactionData, recipientAddress, amount) {
+                const apiUrl = '{{route('send-token')}}';
+                const dataToSend = {
+                    transactionData: transactionData,
+                    recipientAddress: recipientAddress,
+                    amount: amount,
+                };
+                console.log(dataToSend)
+                fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify(dataToSend),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log(data.message);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+            }
+            // update trạng thái
+            function updateTransactionStatus(transactionData, transactionHash, status) {
+                const update_url = '{{route('update-transaction')}}';
+                fetch(update_url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.head.querySelector('meta[name="csrf-token"]').content,
+                    },
+                    body: JSON.stringify({
+                        transactionData: transactionData,
+                        transactionHash: transactionHash,
+                        status: status
+                    })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        console.log('Transaction status updated:', data);
+                    })
+                    .catch(error => {
+                        console.error('Error updating transaction status:', error);
+                    });
             }
         });
     </script>
