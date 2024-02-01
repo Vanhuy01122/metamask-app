@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'home'])->name('home');
 
 Route::post('/authenticate', [App\Http\Controllers\AuthController::class, 'authenticate'])->name('authenticate');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+//Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 //Route::get('/send-transaction', function () {
 //    return view('send-transaction');

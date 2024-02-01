@@ -64,8 +64,15 @@
                             </ul>
                         </div>
                         <div class="nav-bottom">
-                            {{--                            <button class="not-logged" id="buyNow">Buy now</button>--}}
-                            <a href="@if(!empty($eth_address)) {{ route('logout') }} @else # @endif" class="logged" id="ethAddress">{{$eth_address ?? 'Buy now'}} </a>
+                            @if(!empty($eth_address))
+                                <form action="{{ route('logout') }}" method="post">
+                                    @csrf
+                                    <button type="submit" class="logged"
+                                            id="ethAddress">{{$eth_address}} </button>
+                                </form>
+                            @else
+                                <button class="not-logged" id="buyNow">Buy now</button>
+                            @endif
                         </div>
                     </div>
                 </div>

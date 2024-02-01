@@ -109,8 +109,13 @@
                                     </a>
                                     @auth
                                         {{auth()->user()->name}}
-                                        <a href="{{ route('logout') }}"
-                                           class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>
+{{--                                        <a href="{{ route('logout') }}"--}}
+{{--                                           class="btn btn-outline-primary mx-3 mt-2 d-block">Logout</a>--}}
+
+                                        <form action="{{ route('logout') }}" method="post">
+                                            @csrf
+                                            <button type="submit" class="btn btn-outline-primary mx-3 mt-2 d-block" id="ethAddress">Logout </button>
+                                        </form>
                                     @endauth
                                 </div>
                             </div>
