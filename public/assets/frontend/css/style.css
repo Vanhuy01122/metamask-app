@@ -728,7 +728,7 @@ div a:hover {
     margin-top: 25px;
 }
 
-.connect-wallet .connect-metamask {
+.connect-wallet div button {
     background: #ff9431;
     padding: 12px 15px;
     font-size: 14px;
